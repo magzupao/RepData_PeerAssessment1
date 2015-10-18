@@ -1,9 +1,4 @@
-'---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
   
 Test performed on a computer with:  
 - Ubuntu operating system 14.0.4  
@@ -68,18 +63,28 @@ unzip('data/data_activity.zip', exdir='data')
   
 Read data from csv file and store it in a memory variable named 'data.  
 
-```{r}
+
+```r
   data <- read.csv('data/activity.csv')
   dim(data)
+```
+
+```
+## [1] 17568     3
 ```
 
 2.- Process/transform the data (if necessary) into a format suitable for your analysis  
 
 We create a new data set excluding records that contain NA.  
   
-```{r}
+
+```r
 subdata = data[!is.na(data$steps), ]  
 dim(subdata)
+```
+
+```
+## [1] 15264     3
 ```
 
 
@@ -92,7 +97,8 @@ For this part of the assignment, you can ignore the missing values in the datase
 2.- If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
 
 3.- Calculate and report the mean and median of the total number of steps taken per day
-```{r}
+
+```r
 #group for day
 num.steps.date <- aggregate(subdata$steps, list(subdata$date), sum)
 colnames(num.steps.date) <- c("date", "steps")
@@ -103,19 +109,35 @@ ggplot(data=num.steps.date, aes(x=steps)) +
   geom_histogram(fill="#880011") +  
   ggtitle("Steps Taken per Day") +
   labs(x="Number of Steps per Day", y="Number of times in a day")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
 #mean and median
 steps_mean   <- mean(num.steps.date$steps)
 steps_median <- median(num.steps.date$steps)
 steps_mean
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 steps_median
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 1.- Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)  
 
 2.- Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?  
-```{r}
+
+```r
 steps_per_interval <- aggregate(subdata$steps, 
                                 by = list(interval = as.factor(subdata$interval)),
                                 FUN=mean, na.rm=TRUE)
@@ -127,29 +149,56 @@ colnames(steps_per_interval) <- c("interval", "steps")
 			
 ggplot(data=steps_per_interval, aes(x=interval, y=steps)) + 
     geom_line()
-	
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+```r
 #maximo intervalo
 max_interval <- steps_per_interval[which.max(steps_per_interval$steps),]
 max_interval
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.  
 
 1.- Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)  
-```{r}
+
+```r
 vals.is.na <- sum(is.na(data$steps))
 vals.is.na
 ```
 
+```
+## [1] 2304
+```
+
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.  
 
-```{r}
+
+```r
 #average number of steps as a function of range
 steps.iterval <- aggregate(steps ~ interval, data , FUN = mean)
 
 head(data)
+```
 
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+```r
 #change value NA
 for (i in 1:nrow(data)){
      tmp <- data$steps[i]
@@ -166,9 +215,20 @@ for (i in 1:nrow(data)){
 head(data)
 ```
 
+```
+##       steps       date interval
+## 1 1.7169811 2012-10-01        0
+## 2 0.3396226 2012-10-01        5
+## 3 0.1320755 2012-10-01       10
+## 4 0.1509434 2012-10-01       15
+## 5 0.0754717 2012-10-01       20
+## 6 2.0943396 2012-10-01       25
+```
+
 3.- Create a new dataset that is equal to the original dataset but with the missing data filled in.  
 
-```{r}
+
+```r
 #group for day
 new.num.steps.date <- aggregate(data$steps, list(data$date), sum)
 colnames(new.num.steps.date) <- c("date", "steps")
@@ -181,29 +241,27 @@ ggplot(data=new.num.steps.date, aes(x=steps)) +
   labs(x="Number of Steps per Day", y="Number of times in a day")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
 4.- Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 
-```{r}
+
+```r
 #mean and median
 new_steps_mean   <- mean(new.num.steps.date$steps)
 new_steps_median <- median(new.num.steps.date$steps)
 new_steps_mean
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 new_steps_median
+```
 
-new_steps_per_interval <- aggregate(data$steps, 
-                                by = list(interval = as.factor(data$interval)),
-                                FUN=mean, na.rm=TRUE)
-  						
-new_steps_per_interval$interval <- 
-        as.integer(levels(new_steps_per_interval$interval)[new_steps_per_interval$interval])
-
-colnames(new_steps_per_interval) <- c("interval", "steps")
-			
-ggplot(data=new_steps_per_interval, aes(x=interval, y=steps)) + 
-    geom_line()
-	
-max_interval <- new_steps_per_interval[which.max(new_steps_per_interval$steps),]
-max_interval
-
+```
+## [1] 10766.19
 ```
 
