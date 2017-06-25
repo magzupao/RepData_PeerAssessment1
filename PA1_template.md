@@ -111,7 +111,11 @@ ggplot(data=num.steps.date, aes(x=steps)) +
   labs(x="Number of Steps per Day", y="Number of times in a day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
 #mean and median
@@ -151,7 +155,7 @@ ggplot(data=steps_per_interval, aes(x=interval, y=steps)) +
     geom_line()
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 #maximo intervalo
@@ -241,7 +245,11 @@ ggplot(data=new.num.steps.date, aes(x=steps)) +
   labs(x="Number of Steps per Day", y="Number of times in a day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 4.- Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 
@@ -263,5 +271,31 @@ new_steps_median
 
 ```
 ## [1] 10766.19
+```
+
+```r
+new_steps_per_interval <- aggregate(data$steps, 
+                                by = list(interval = as.factor(data$interval)),
+                                FUN=mean, na.rm=TRUE)
+  						
+new_steps_per_interval$interval <- 
+        as.integer(levels(new_steps_per_interval$interval)[new_steps_per_interval$interval])
+
+colnames(new_steps_per_interval) <- c("interval", "steps")
+			
+ggplot(data=new_steps_per_interval, aes(x=interval, y=steps)) + 
+    geom_line()
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
+max_interval <- new_steps_per_interval[which.max(new_steps_per_interval$steps),]
+max_interval
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
