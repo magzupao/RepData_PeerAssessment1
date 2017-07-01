@@ -1,24 +1,25 @@
-# Reproducible Research: Peer Assessment 1
-  
-Test performed on a computer with:  
-- Ubuntu operating system 14.0.4  
-- Version 0.98.1103 – © 2009-2014 RStudio  
-- R version 3.1.3  
+--- 
+title: "Reproducible Research: Peer Assessment 1"
+output: html_document 
+---
 
-Author:  
-Marco Guado  
-August, August 2015  
+Test performed on a computer with:  
+- Ubuntu operating system 16.04  
+- Version 0.99.903 – © 2009-2016 RStudio  
+- R version 3.3.3  
   
-##Introduction
+Author:Marco Guado  
+Barcelona, July 2017  
+  
+#Introduction  
 It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-##Data
+Data
 The data for this assignment can be downloaded from the course web site:
 
-Dataset: Activity monitoring data [52K]
-The variables included in this dataset are:
+Dataset: Activity monitoring data [52K] The variables included in this dataset are:
 
 steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
 
@@ -28,7 +29,7 @@ interval: Identifier for the 5-minute interval in which measurement was taken
 
 The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 
-##Assignment
+Assignment
 This assignment will be described in multiple parts. You will need to write a report that answers the questions detailed below. Ultimately, you will need to complete the entire assignment in a single R markdown document that can be processed by knitr and be transformed into an HTML file.
 
 Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.
@@ -37,111 +38,98 @@ For the plotting aspects of this assignment, feel free to use any plotting syste
 
 Fork/clone the GitHub repository created for this assignment. You will submit this assignment by pushing your completed files into your forked repository on GitHub. The assignment submission will consist of the URL to your GitHub repository and the SHA-1 commit ID for your repository state.
 
-NOTE: The GitHub repository also contains the dataset for the assignment so you do not have to download the data separately.
+NOTE: The GitHub repository also contains the dataset for the assignment so you do not have to download the data separately.  
 
-## Loading and preprocessing the data  
+#Loading and preprocessing the data  
 
-1.- Load the data (i.e. read.csv())  
-Download the zipped file and are located in the folder RepData_PeerAssessment1/data  
+##1. Code for reading in the dataset and/or processing the data
 
-Set working directory:  
-/....PATH...USE...PC.../RepData_PeerAssessment1  
-Create new folder "data"  
-  
+Download the zipped file and are located in the folder of work.
 
-dir.create('data')
-download.file("http://d396qusza40orc.cloudfront.net/repdata/data/activity.zip", destfile="data/data_activity.zip")  
+```{r}
+#Load the data (i.e. read.csv())  
+if( !(file.exists("data/data_activity.zip") == TRUE) ){
 
-  
+  dir.create('data')  
+  download.file("http://d396qusza40orc.cloudfront.net/repdata/data/activity.zip", destfile="data/data_activity.zip")
+  unzip('data/data_activity.zip', exdir='data')
+
+}
+
+```
+
 Nota.- If you use https to download the file and you get a message: "unsopported URL scheme", only use http as in the example above.  
-  
-unzip the archive "data/data_activity.zip"  
-  
 
-unzip('data/data_activity.zip', exdir='data')
-  
-  
-Read data from csv file and store it in a memory variable named 'data.  
-
-
-```r
-  data <- read.csv('data/activity.csv')
-  dim(data)
-```
-
-```
-## [1] 17568     3
-```
-
-2.- Process/transform the data (if necessary) into a format suitable for your analysis  
-
+Read data from csv file and store it in a memory variable named 'data'.  
+Process/transform the data (if necessary) into a format suitable for your analysis  
 We create a new data set excluding records that contain NA.  
-  
 
-```r
+```{r}
+data <- read.csv('data/activity.csv')
+head(data)
+nrow(data)
+
 subdata = data[!is.na(data$steps), ]  
-dim(subdata)
+head(subdata)
+nrow(subdata)
 ```
 
-```
-## [1] 15264     3
-```
+##2. Histogram of the total number of steps taken each day
 
-
-## What is mean total number of steps taken per day?
-
-For this part of the assignment, you can ignore the missing values in the dataset.
-
-1.- Calculate the total number of steps taken per day
-
-2.- If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
-
-3.- Calculate and report the mean and median of the total number of steps taken per day
-
-```r
+```{r}
 #group for day
-num.steps.date <- aggregate(subdata$steps, list(subdata$date), sum)
+temp <- aggregate(subdata$steps, list(subdata$date), sum)
+temp.date.character <- as.Date.character(temp$Group.1)
+temp.date <- as.Date(temp.date.character, "%Y/%m/%d")
+
+num.steps.date <- data.frame(temp.date, temp$x)
 colnames(num.steps.date) <- c("date", "steps")
+head(num.steps.date)
 
 library(ggplot2)
 #hist
-ggplot(data=num.steps.date, aes(x=steps)) +
-  geom_histogram(fill="#880011") +  
+ggplot(data=num.steps.date, aes(date,steps)) +
+  geom_line() +  
   ggtitle("Steps Taken per Day") +
   labs(x="Number of Steps per Day", y="Number of times in a day")
 ```
 
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-```
+![Steps Taken per Day](instructions_fig/graphic02.png) 
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
-
-```r
+##3. Mean and median number of steps taken each day
+```{r}
 #mean and median
 steps_mean   <- mean(num.steps.date$steps)
 steps_median <- median(num.steps.date$steps)
 steps_mean
-```
-
-```
-## [1] 10766.19
-```
-
-```r
 steps_median
-```
 
 ```
-## [1] 10765
+
+##4. Time series plot of the average number of steps taken
+
+```{r}
+#We only take those records other than 0 to get the mean
+subdata.steps <- subdata[subdata$steps != 0,]
+head(subdata.steps)
+temp <- aggregate(subdata.steps$steps, list(subdata.steps$date), mean )
+temp.date.character <- as.Date.character(temp$Group.1)
+temp.date <- as.Date(temp.date.character, "%Y/%m/%d")
+
+num.steps.date <- data.frame(temp.date, temp$x)
+colnames(num.steps.date) <- c("date", "steps")
+head(num.steps.date)
+
+ggplot(data=num.steps.date, aes(date,steps)) +
+  geom_line() +  
+  ggtitle("Average number of steps taken") +
+  labs(x="Steps per Day", y="Average steps in a day")
 ```
+![Average number of steps taken](instructions_fig/graphic04.png) 
 
-## What is the average daily activity pattern?
-1.- Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)  
+##5. The 5-minute interval that, on average, contains the maximum number of steps  
 
-2.- Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?  
-
-```r
+```{r}
 steps_per_interval <- aggregate(subdata$steps, 
                                 by = list(interval = as.factor(subdata$interval)),
                                 FUN=mean, na.rm=TRUE)
@@ -153,56 +141,30 @@ colnames(steps_per_interval) <- c("interval", "steps")
 			
 ggplot(data=steps_per_interval, aes(x=interval, y=steps)) + 
     geom_line()
-```
-
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
-
-```r
+	
 #maximo intervalo
 max_interval <- steps_per_interval[which.max(steps_per_interval$steps),]
 max_interval
 ```
+![Maximum number of steps](instructions_fig/graphic05.png) 
 
-```
-##     interval    steps
-## 104      835 206.1698
-```
-
-## Imputing missing values
+##6. Code to describe and show a strategy for imputing missing data
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.  
 
-1.- Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)  
-
-```r
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)  
+```{r}
 vals.is.na <- sum(is.na(data$steps))
 vals.is.na
 ```
 
-```
-## [1] 2304
-```
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.  
 
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.  
-
-
-```r
+```{r}
 #average number of steps as a function of range
 steps.iterval <- aggregate(steps ~ interval, data , FUN = mean)
 
 head(data)
-```
 
-```
-##   steps       date interval
-## 1    NA 2012-10-01        0
-## 2    NA 2012-10-01        5
-## 3    NA 2012-10-01       10
-## 4    NA 2012-10-01       15
-## 5    NA 2012-10-01       20
-## 6    NA 2012-10-01       25
-```
-
-```r
 #change value NA
 for (i in 1:nrow(data)){
      tmp <- data$steps[i]
@@ -219,61 +181,30 @@ for (i in 1:nrow(data)){
 head(data)
 ```
 
-```
-##       steps       date interval
-## 1 1.7169811 2012-10-01        0
-## 2 0.3396226 2012-10-01        5
-## 3 0.1320755 2012-10-01       10
-## 4 0.1509434 2012-10-01       15
-## 5 0.0754717 2012-10-01       20
-## 6 2.0943396 2012-10-01       25
-```
+Create a new dataset that is equal to the original dataset but with the missing data filled in.  
 
-3.- Create a new dataset that is equal to the original dataset but with the missing data filled in.  
-
-
-```r
+```{r}
 #group for day
 new.num.steps.date <- aggregate(data$steps, list(data$date), sum)
 colnames(new.num.steps.date) <- c("date", "steps")
 
-library(ggplot2)
-#create hist
 ggplot(data=new.num.steps.date, aes(x=steps)) +
   geom_histogram(fill="#880011") +  
   ggtitle("Steps Taken per Day") +
   labs(x="Number of Steps per Day", y="Number of times in a day")
 ```
+![Steps Taken per Day](instructions_fig/graphic06.png)  
+    
+##7. Histogram of the total number of steps taken each day after missing values are imputed
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-```
-
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
-
-4.- Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?  
-
-
-```r
+```{r}
 #mean and median
 new_steps_mean   <- mean(new.num.steps.date$steps)
 new_steps_median <- median(new.num.steps.date$steps)
 new_steps_mean
-```
-
-```
-## [1] 10766.19
-```
-
-```r
 new_steps_median
-```
 
-```
-## [1] 10766.19
-```
-
-```r
 new_steps_per_interval <- aggregate(data$steps, 
                                 by = list(interval = as.factor(data$interval)),
                                 FUN=mean, na.rm=TRUE)
@@ -287,15 +218,37 @@ ggplot(data=new_steps_per_interval, aes(x=interval, y=steps)) +
     geom_line()
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+.....  
 
-```r
+```{r}	
 max_interval <- new_steps_per_interval[which.max(new_steps_per_interval$steps),]
 max_interval
-```
 
 ```
-##     interval    steps
-## 104      835 206.1698
-```
+![Steps taken each day after missing values](instructions_fig/graphic07.png)  
+  
+##8. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+```{r}
+#The analysis has been done in Spanish so we filter for the weekend.
+num.steps.date$d <- grepl("d.+",weekdays(num.steps.date$date))
 
+#create data frame weekdays and weekends.
+data.weekdays <- num.steps.date[num.steps.date$d==FALSE,]
+data.weekends <- num.steps.date[num.steps.date$d==TRUE,]
+
+ggplot(data=data.weekdays, aes(date,steps)) +
+  geom_line() +  
+  ggtitle("Steps Taken per weekdays") +
+  labs(x="Steps per weekdays", y="Average steps in a weekdays")
+```
+![Average steps in a weekdays](instructions_fig/graphic08a.png)
+
+
+```{r}
+ggplot(data=data.weekends, aes(date,steps)) +
+  geom_line() +  
+  ggtitle("Steps Taken per weekends") +
+  labs(x="Steps per weekends", y="Average steps in a weekends")
+
+```
+![Average steps in a weekends](instructions_fig/graphic08b.png)
